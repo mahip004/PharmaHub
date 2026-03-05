@@ -9,34 +9,50 @@ const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || "http://localhost:8000";
 
 const MedicineCard = ({ msg, handleAddToCart, navigate }) => {
   const [qty, setQty] = useState(1);
+  const isAvailable = !!msg.matched; // We'll need to pass this or check if matched
 
   return (
     <div className="medicine-card-inner">
-      <ReactMarkdown>{msg.text}</ReactMarkdown>
-      <div className="medicine-actions">
-        <label className="qty-label">
-          Qty:
-          <input
-            type="number"
-            min="1"
-            value={qty}
-            onChange={(e) => setQty(parseInt(e.target.value) || 1)}
-            className="qty-input"
-          />
-        </label>
-        <button
-          className="add-cart-btn"
-          onClick={() => handleAddToCart(msg.medicineName, qty)}
-        >
-          Add to Cart
-        </button>
-        <button
-          className="go-cart-btn"
-          onClick={() => navigate("/cart")}
-        >
-          Go to Cart
-        </button>
+      <div className={`availability-tag ${msg.matched ? 'avail' : 'not-avail'}`}>
+        {msg.matched ? 'Available' : 'Not Available'}
       </div>
+      <ReactMarkdown>{msg.text}</ReactMarkdown>
+
+      {msg.matched ? (
+        <div className="medicine-actions">
+          <label className="qty-label">
+            Qty:
+            <input
+              type="number"
+              min="1"
+              value={qty}
+              onChange={(e) => setQty(parseInt(e.target.value) || 1)}
+              className="qty-input"
+            />
+          </label>
+          <button
+            className="add-cart-btn"
+            onClick={() => handleAddToCart(msg.medicineName, qty)}
+          >
+            Add to Cart
+          </button>
+          <button
+            className="go-cart-btn"
+            onClick={() => navigate("/cart")}
+          >
+            Go to Cart
+          </button>
+        </div>
+      ) : (
+        <div className="medicine-actions">
+          <button
+            className="request-btn"
+            onClick={() => navigate("/requestmedicine")}
+          >
+            Request Medicine
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -134,15 +150,32 @@ const ChatBox = () => {
         }
 
         for (const m of medicines) {
+          // Clean medicine name from possible AI delimiters like leading commas
+          const cleanName = (m.name || "").replace(/^[ ,.]+/, "").trim();
+          if (!cleanName) continue;
+
+          // Check if medicine exists in Node.js backend to determine availability
+          let isMatched = false;
+          try {
+            const checkRes = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/medicines/search?q=${encodeURIComponent(cleanName)}`);
+            if (checkRes.ok) {
+              const checkData = await checkRes.json();
+              isMatched = checkData.length > 0;
+            }
+          } catch (e) {
+            console.warn("Availability check failed:", e);
+          }
+
           const desc = medicine_info[m.name] || "Use as directed.";
           const dosageTxt = m.dosage ? `\n\n**Dosage:** ${m.dosage}` : "";
-          const freqTxt = m.frequency ? `\n\n**Frequency:** ${m.frequency}` : "";
-          const msgText = `💊 **${m.name}**: ${desc}${dosageTxt}${freqTxt}`;
+          const durationTxt = m.duration ? `\n\n**Duration:** ${m.duration}` : "";
+          const msgText = `💊 **${m.name}**: ${desc}${dosageTxt}${durationTxt}`;
 
           const infoMessage = {
             sender: "system",
             text: msgText,
-            medicineName: m.name
+            medicineName: m.name,
+            matched: isMatched
           };
           setMessages((prev) => [...prev, infoMessage]);
         }

@@ -17,7 +17,7 @@ const store = {
     { _id: "m3", med_name: "Cetirizine", med_desc: "Antihistamine", usage: "Allergies", dosage: "10mg", side_effects: "Drowsiness", med_price: 15, med_quantity: 120 },
     { _id: "m4", med_name: "Omeprazole", med_desc: "Antacid", usage: "Acid reflux", dosage: "20mg", side_effects: "Headache", med_price: 35, med_quantity: 90 },
     { _id: "m5", med_name: "Ibuprofen", med_desc: "NSAID", usage: "Pain, inflammation", dosage: "400mg", side_effects: "Stomach upset", med_price: 30, med_quantity: 70 },
-  
+
     { _id: "m6", med_name: "Aspirin", med_desc: "Pain reliever", usage: "Pain, inflammation", dosage: "325mg", side_effects: "Stomach irritation", med_price: 15, med_quantity: Math.floor(Math.random() * 100) + 20 },
     { _id: "m7", med_name: "Lisinopril", med_desc: "ACE inhibitor", usage: "High blood pressure", dosage: "10mg", side_effects: "Dry cough", med_price: 22, med_quantity: Math.floor(Math.random() * 100) + 20 },
     { _id: "m8", med_name: "Metformin", med_desc: "Diabetes medication", usage: "Type 2 diabetes", dosage: "500mg", side_effects: "Nausea", med_price: 12, med_quantity: Math.floor(Math.random() * 100) + 20 },
@@ -113,7 +113,7 @@ const store = {
     { _id: "m98", med_name: "Sumatriptan", med_desc: "Triptan", usage: "Migraines", dosage: "50mg", side_effects: "Tingling", med_price: 45, med_quantity: Math.floor(Math.random() * 100) + 20 },
     { _id: "m99", med_name: "Rizatriptan", med_desc: "Triptan", usage: "Migraines", dosage: "10mg", side_effects: "Dizziness", med_price: 50, med_quantity: Math.floor(Math.random() * 100) + 20 },
     { _id: "m100", med_name: "Naloxone", med_desc: "Opioid antagonist", usage: "Opioid overdose", dosage: "4mg", side_effects: "Withdrawal symptoms", med_price: 120, med_quantity: Math.floor(Math.random() * 100) + 20 },
-],
+  ],
   prescriptions: [],
   carts: {},
   orders: [],
@@ -194,13 +194,19 @@ function findMedicineByName(name) {
 
 function findMedicineFuzzy(name) {
   if (!name || !name.trim()) return null;
-  const cleaned = name.trim();
+
+  const cleaned = name.trim()
+    .replace(/^[ ,.]+/, "")
+    .replace(/^(TAB\.|TAB,|CAP\.|CAP,|SYP\.|SYP,|INJ\.|INJ,|TAB|CAP|SYP|INJ)\s+/i, "")
+    .trim();
+
   let found = store.medicines.find((m) =>
     m.med_name && new RegExp(cleaned.replace(/\s+/g, "\\s*"), "i").test(m.med_name)
   );
   if (found) return found;
+
   const words = cleaned.split(/\s+/).filter(Boolean);
-  if (words.length >= 2) {
+  if (words.length >= 1) {
     found = store.medicines.find((m) => {
       if (!m.med_name) return false;
       const lower = m.med_name.toLowerCase();

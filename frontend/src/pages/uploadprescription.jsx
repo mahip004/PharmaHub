@@ -137,11 +137,36 @@ const UploadPrescription = () => {
               <li key={i}>
                 <strong>{m.name}</strong>
                 {m.dosage && ` — ${m.dosage}`}
-                {m.frequency && `, ${m.frequency}`}
+                {m.duration && <span className="duration-tag"> ({m.duration})</span>}
+                <div className="status-badge">
+                  {m.matchedId ? (
+                    <span className="available">Available</span>
+                  ) : (
+                    <span className="not-available">Not Available</span>
+                  )}
+                </div>
                 {m.matchedName && (
-                  <span className="matched"> → Matched: {m.matchedName} (₹{m.price})</span>
+                  <span className="matched-details"> (₹{m.price})</span>
                 )}
-                {!m.matchedId && <span className="no-match"> — Not in catalog</span>}
+                {m.matchedId && (
+                  <button
+                    className="individual-add-btn"
+                    onClick={() => {
+                      addFromPrescription([{ medicineId: m.matchedId, quantity: 1 }])
+                        .then(r => r.success ? alert("Added to cart") : alert("Failed"));
+                    }}
+                  >
+                    Add to Cart
+                  </button>
+                )}
+                {!m.matchedId && (
+                  <button
+                    className="request-link-btn"
+                    onClick={() => navigate("/requestmedicine")}
+                  >
+                    Request this medicine
+                  </button>
+                )}
               </li>
             ))}
           </ul>

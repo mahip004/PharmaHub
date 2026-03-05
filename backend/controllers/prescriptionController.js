@@ -3,6 +3,7 @@ const Medicine = require("../models/Medicine");
 const {
   extractTextFromImage,
   getStructuredMedicines,
+  extractVisionDirect,
 } = require("../utils/fastapiClient");
 
 const memory = () => (global.USE_MEMORY_STORE ? require("../store/memoryStore") : null);
@@ -10,15 +11,23 @@ const memory = () => (global.USE_MEMORY_STORE ? require("../store/memoryStore") 
 /** Fuzzy match medicine name; returns Medicine doc or null */
 async function fuzzyMatchMedicine(name) {
   const mem = memory();
-  if (mem) return mem.findMedicineFuzzy(name);
   if (!name || !name.trim()) return null;
-  const cleaned = name.trim();
+
+  // Clean prefix like "TAB. ", "CAP. ", etc.
+  const cleaned = name.trim()
+    .replace(/^[ ,.]+/, "")
+    .replace(/^(TAB\.|TAB,|CAP\.|CAP,|SYP\.|SYP,|INJ\.|INJ,|TAB|CAP|SYP|INJ)\s+/i, "")
+    .trim();
+
+  if (mem) return mem.findMedicineFuzzy(cleaned);
+
   let found = await Medicine.findOne({
     med_name: { $regex: new RegExp(cleaned.replace(/\s+/g, "\\s*"), "i") },
   });
   if (found) return found;
+
   const words = cleaned.split(/\s+/).filter(Boolean);
-  if (words.length >= 2) {
+  if (words.length >= 1) {
     const pattern = words.map((w) => `(?=.*${w})`).join("");
     found = await Medicine.findOne({ med_name: { $regex: new RegExp(pattern, "i") } });
   }
@@ -40,19 +49,20 @@ async function uploadPrescription(req, res) {
 
     if (file && file.buffer) {
       try {
-        const text = await extractTextFromImage(file.buffer, file.originalname);
-        extractedText = text || "";
-        const structured = await getStructuredMedicines(extractedText || description || " ");
-        medicines = structured.map((m) => ({
-          name: typeof m === "string" ? m : (m && m.name) || "",
-          dosage: (m && m.dosage) || "",
-          frequency: (m && m.frequency) || "",
+        const extractedMedicines = await extractVisionDirect(file.buffer, file.originalname);
+        medicines = extractedMedicines.map((m) => ({
+          name: m.name || "",
+          dosage: m.dosage || "",
+          frequency: m.frequency || "",
+          duration: m.duration || "",
         }));
+        extractedText = `(Extracted ${medicines.length} medicines via Vision AI)`;
       } catch (e) {
+        console.error("Vision AI extraction failed:", e);
         extractedText = "(OCR failed - paste text below)";
         if (description) {
           const structured = await getStructuredMedicines(description).catch(() => []);
-          medicines = Array.isArray(structured) ? structured.map((m) => (typeof m === "string" ? { name: m, dosage: "", frequency: "" } : { name: m?.name || "", dosage: m?.dosage || "", frequency: m?.frequency || "" })) : [];
+          medicines = Array.isArray(structured) ? structured.map((m) => (typeof m === "string" ? { name: m, dosage: "", frequency: "" } : { name: m?.name || "", dosage: m?.dosage || "", frequency: "" })) : [];
         }
       }
     } else if (description) {

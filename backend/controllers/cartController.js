@@ -146,29 +146,33 @@ async function addFromPrescription(req, res) {
 
     for (const m of medicines) {
       const qty = m.quantity || 1;
-      // Strip trailing numbers from brand names (e.g., "Zoclar 500" → try "Zoclar 500" first, then "Zoclar")
       const baseName = (m.name || "").trim();
-      const shortName = baseName.replace(/\s+\d+.*$/, "").trim();
+      if (!baseName) continue;
 
-      console.log(`[Prescription Cart] Searching for: "${baseName}" (short: "${shortName}")`);
+      const shortName = baseName.replace(/\s+\d+.*$/, "").trim();
+      const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedShort = shortName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      console.log(`[Cart] Processing: "${baseName}"`);
 
       let medicine = m.medicineId
         ? await Medicine.findById(m.medicineId)
-        : await Medicine.findOne({ med_name: { $regex: new RegExp(baseName, "i") } }) ||
-        await Medicine.findOne({ med_name: { $regex: new RegExp(shortName, "i") } });
+        : await Medicine.findOne({ med_name: { $regex: new RegExp(escapedBase, "i") } }) ||
+        await Medicine.findOne({ med_name: { $regex: new RegExp(escapedShort, "i") } });
 
       if (!medicine) {
-        console.log(`[Prescription Cart] Not found in DB: "${baseName}"`);
+        console.log(`[Cart] No match for: "${baseName}"`);
         notFound.push(baseName);
         continue;
       }
+
       if ((medicine.med_quantity || 0) < qty) {
-        console.log(`[Prescription Cart] Insufficient stock for: "${medicine.med_name}"`);
-        notFound.push(`${baseName} (out of stock)`);
+        console.log(`[Cart] Out of stock: "${medicine.med_name}"`);
+        notFound.push(`${baseName} (Insufficient stock)`);
         continue;
       }
 
-      console.log(`[Prescription Cart] Adding: "${medicine.med_name}" x${qty}`);
+      console.log(`[Cart] Adding to DB: "${medicine.med_name}"`);
       const existing = cart.items.find((i) => i.medicineId?.toString() === medicine._id.toString());
       if (existing) existing.quantity += qty;
       else cart.items.push({ medicineId: medicine._id, quantity: qty, name: medicine.med_name, price: medicine.med_price });
@@ -177,6 +181,8 @@ async function addFromPrescription(req, res) {
 
     cart.updatedAt = new Date();
     await cart.save();
+    console.log(`[Cart] Saved. Added count: ${added.length}`);
+
     const populated = await Cart.findById(cart._id).populate("items.medicineId").lean();
     const items = (populated?.items || []).map((item) => ({
       medicineId: item.medicineId?._id || item.medicineId,
@@ -185,17 +191,12 @@ async function addFromPrescription(req, res) {
       price: item.medicineId?.med_price ?? item.price,
     }));
 
-    if (added.length === 0) {
-      return res.status(404).json({
-        message: `None of the medicines from the prescription were found in our inventory. Not found: ${notFound.join(", ")}`,
-        items,
-        added,
-        notFound,
-      });
-    }
-
+    // Return 200 even if none found, to avoid "404" confusion in console
     res.json({
-      message: `Added to cart: ${added.join(", ")}${notFound.length ? ". Not in inventory: " + notFound.join(", ") : ""}`,
+      success: added.length > 0,
+      message: added.length > 0
+        ? `Added to cart: ${added.join(", ")}${notFound.length ? ". Not found: " + notFound.join(", ") : ""}`
+        : `Could not find any matching medicines in inventory. Was searching for: ${notFound.join(", ")}`,
       items,
       added,
       notFound,

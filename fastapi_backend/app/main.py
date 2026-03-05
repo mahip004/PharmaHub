@@ -158,6 +158,7 @@ class ExtractMedicinesRequest(BaseModel):
 class MedicineItem(BaseModel):
     name: str
     dosage: Optional[str] = ""
+    duration: Optional[str] = ""
     frequency: Optional[str] = ""
 
 
@@ -166,14 +167,14 @@ async def extract_medicines_structured(data: ExtractMedicinesRequest):
     """Return structured list of medicines for prescription text."""
     text = data.text or " "
     prompt = (
-        "From the following prescription text, extract each medicine with its dosage and frequency.\n"
-        "Return ONLY a valid JSON array of objects, no other text. Each object must have: name (string), dosage (string), frequency (string).\n"
-        "If a dosage or frequency is not found, leave it as an empty string.\n"
-        "Example: [{\"name\": \"Paracetamol\", \"dosage\": \"500mg\", \"frequency\": \"twice daily\"}]\n\n"
+        "From the following COMPUTERIZED typed prescription text, extract each medicine with its dosage and duration.\n"
+        "Return ONLY a valid JSON array of objects, no other text. Each object must have: name (string), dosage (string), duration (string).\n"
+        "Focus only on medicine names, their specific strengths/dosages (e.g., 500mg, 1 Morning), and duration (e.g. 5 Days, 1 Month).\n"
+        "Example: [{\"name\": \"Paracetamol\", \"dosage\": \"500mg - 1 Morning\", \"duration\": \"5 Days\"}]\n\n"
         f"Prescription Text:\n{text}"
     )
     if not client:
-        return {"medicines": [{"name": "Paracetamol", "dosage": "500mg", "frequency": "twice daily"}]}
+        return {"medicines": [{"name": "Paracetamol", "dosage": "500mg"}]}
     
     try:
         response = client.models.generate_content(
@@ -186,13 +187,13 @@ async def extract_medicines_structured(data: ExtractMedicinesRequest):
             raw = re.sub(r"^```\w*\n?", "", raw).replace("```", "").strip()
         arr = json.loads(raw)
         medicines = [
-            {"name": str(m.get("name", "")), "dosage": str(m.get("dosage", "")), "frequency": str(m.get("frequency", ""))}
+            {"name": str(m.get("name", "")), "dosage": str(m.get("dosage", "")), "duration": str(m.get("duration", ""))}
             for m in arr if isinstance(m, dict)
         ]
         return {"medicines": medicines}
     except Exception as e:
         print(f"Error parsing Gemini JSON: {e}")
-        return {"medicines": [{"name": "Error Parsing Prescription", "dosage": "", "frequency": ""}]}
+        return {"medicines": [{"name": "Error Parsing Prescription", "dosage": ""}]}
 
 class Message(BaseModel):
     user_input: str
@@ -306,10 +307,10 @@ async def extract_vision(file: UploadFile = File(...)):
          return {"medicines": fallback_local_ocr(contents)}
          
     prompt = (
-        "Extract all medicine names from this prescription image with their dosage and frequency.\n"
-        "Return ONLY a valid JSON array of objects, no other text. Each object must have: name (string), dosage (string), frequency (string).\n"
-        "If a dosage or frequency is not found, leave it as an empty string.\n"
-        "Example: [{\"name\": \"Paracetamol\", \"dosage\": \"500mg\", \"frequency\": \"twice daily\"}]\n\n"
+        "Extract all medicine names from this COMPUTERIZED typed prescription image with their dosage and duration (frequency like 1 Morning/Night and days like 5 Days).\n"
+        "Return ONLY a valid JSON array of objects, no other text. Each object must have: name (string), dosage (string), duration (string).\n"
+        "Focus only on medicine names, specific strengths/dosages (e.g., 500mg, 1 Morning), and duration (e.g., 8 Days, 1 Month).\n"
+        "Example: [{\"name\": \"Paracetamol\", \"dosage\": \"500mg - 1 Morning\", \"duration\": \"5 Days\"}]\n\n"
     )
     
     try:
@@ -326,7 +327,7 @@ async def extract_vision(file: UploadFile = File(...)):
             raw = re.sub(r"^```\w*\n?", "", raw).replace("```", "").strip()
         arr = json.loads(raw)
         medicines = [
-            {"name": str(m.get("name", "")), "dosage": str(m.get("dosage", "")), "frequency": str(m.get("frequency", ""))}
+            {"name": str(m.get("name", "")), "dosage": str(m.get("dosage", "")), "duration": str(m.get("duration", ""))}
             for m in arr if isinstance(m, dict)
         ]
         return {"medicines": medicines}

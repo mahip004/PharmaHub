@@ -15,21 +15,33 @@ const getAllMedicines = async (req, res) => {
 };
 
 const searchMedicine = async (req, res) => {
-  const { name } = req.query;
+  const queryParam = req.query.q || req.query.name || "";
+  if (!queryParam) return res.json([]);
+
+  // Clean query: remove leading commas, dots, and trim
+  const cleanQuery = queryParam.replace(/^[ ,.]+/, "").trim();
+  if (!cleanQuery) return res.json([]);
+
   try {
     const mem = memory();
     if (mem) {
-      const medicine = mem.findMedicineByName(name) || mem.getMedicines().find((m) => m.med_name && m.med_name.toLowerCase().includes((name || "").toLowerCase()));
-      if (medicine) return res.status(200).json(medicine);
-      return res.status(404).json({ message: "Medicine not found" });
+      const found = mem.findMedicineFuzzy(cleanQuery);
+      return res.json(found ? [found] : []);
     }
-    const medicine = await Medicine.findOne({
-      med_name: { $regex: name, $options: "i" },
-    });
-    if (medicine) res.status(200).json(medicine);
-    else res.status(404).json({ message: "Medicine not found" });
+
+    // Escape regex characters
+    const escaped = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    console.log(`[Medicine Search] Query: "${cleanQuery}"`);
+
+    const medicines = await Medicine.find({
+      med_name: { $regex: escaped, $options: "i" },
+    }).limit(10);
+
+    res.json(medicines);
   } catch (error) {
-    res.status(500).json({ message: "Search failed", error });
+    console.error("Search failed:", error);
+    res.status(500).json({ message: "Search failed", error: error.message });
   }
 };
 

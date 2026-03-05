@@ -40,7 +40,8 @@
 .upload-box {
   width: 50%;
   height: 200px;
-  border: 2px dashed var(--primary); /* RESTORED DOTTED LINE */
+  border: 2px dashed var(--primary);
+  /* RESTORED DOTTED LINE */
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -88,7 +89,8 @@
 .text-input {
   width: 100%;
   height: 100%;
-  border: 1px solid #d1d5db; /* Small border for consistency */
+  border: 1px solid #d1d5db;
+  /* Small border for consistency */
   border-radius: 5px;
   font-size: 14px;
   padding: 10px;
@@ -151,16 +153,76 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.medicine-list .matched {
-  color: var(--primary);
-  font-size: 0.9rem;
+.status-badge {
+  margin-top: 4px;
 }
 
-.medicine-list .no-match {
-  color: var(--text-light);
+.available {
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.not-available {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.matched-details {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.request-link-btn {
+  background: transparent;
+  color: #2563eb;
+  border: none;
+  padding: 0;
+  margin-left: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.request-link-btn:hover {
+  color: #1d4ed8;
+}
+
+.individual-add-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background 0.2s;
+}
+
+.individual-add-btn:hover {
+  background: #059669;
+}
+
+.duration-tag {
+  color: #6366f1;
+  font-weight: 600;
   font-size: 0.9rem;
 }
 
 .add-all-btn {
-  margin-top: 0;
+  margin-top: 10px;
 }

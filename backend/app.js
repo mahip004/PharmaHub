@@ -32,8 +32,8 @@ if (global.USE_MEMORY_STORE) {
   require("./store/memoryStore.js"); // ensure store is loaded
 }
 app.use("/api/medicines", medicineRoutes);
-app.use("/api", prescriptionRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api", prescriptionRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api", appointmentRoutes);

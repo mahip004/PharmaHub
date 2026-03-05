@@ -40,8 +40,20 @@ async function getStructuredMedicines(text) {
   return medicineNames.map((name) => ({ name, dosage: "", frequency: "" }));
 }
 
+async function extractVisionDirect(imageBuffer, filename = "prescription.png") {
+  const FormData = (await import("form-data")).default;
+  const form = new FormData();
+  form.append("file", imageBuffer, { filename });
+  const { data } = await axios.post(`${FASTAPI_BASE}/extract_vision/`, form, {
+    headers: form.getHeaders(),
+    maxBodyLength: Infinity,
+  });
+  return data.medicines; // Returns array of {name, dosage}
+}
+
 module.exports = {
   extractTextFromImage,
   validatePrescriptionAndGetMedicines,
   getStructuredMedicines,
+  extractVisionDirect,
 };

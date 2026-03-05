@@ -18,14 +18,15 @@ import Checkout from "./pages/Checkout.jsx";
 import OrderSuccess from "./pages/OrderSuccess.jsx";
 import OrderHistory from "./pages/OrderHistory.jsx";
 import CompleteInfo from "./pages/CompleteInfo.jsx";
+import RequestMedicine from "./pages/RequestMedicine.jsx";
 
 function App() {
   return (
     <Routes>
       <Route path="/signup" element={<SignUp />} />
       <Route path="/login" element={<SignIn />} />
-      <Route path="/" element={<Home />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/" element={<Home />} />
       <Route path="/timetable" element={<Timetable />} />
       <Route path="/appointment" element={<AppointmentForm />} />
       <Route path="/profilepage" element={<ProfilePage />} />
@@ -43,6 +44,7 @@ function App() {
       <Route path="/precise-medication" element={<UploadPrescription />} />
       <Route path="/complete-info" element={<CompleteInfo />} />
       <Route path="/instant-results" element={<ShowPrescriptions />} />
+      <Route path="/requestmedicine" element={<RequestMedicine />} />
     </Routes>
   );
 }

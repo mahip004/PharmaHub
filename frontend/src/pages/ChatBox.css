@@ -168,6 +168,51 @@
     background: #f1f5f9;
 }
 
+.uploadingbox.availability-tag {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.availability-tag.avail {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.availability-tag.not-avail {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.medicine-card-inner {
+    position: relative;
+    padding-top: 10px;
+}
+
+.request-btn {
+    padding: 10px 20px;
+    background: #f8fafc;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.request-btn:hover {
+    background: #3b82f6;
+    color: white;
+}
+
 .uploadingbox button {
     padding: 10px 20px;
     border: none;
@@ -197,8 +242,15 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    background: white;
+    border-left: 4px solid #3b82f6;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.medicine-card.is-matched {
+    border-left-color: #10b981;
     background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%);
-    border-left: 4px solid #10b981;
 }
 
 .medicine-actions {
