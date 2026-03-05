@@ -11,18 +11,19 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    default: ''
   },
   firstName: {
     type: String,
+    default: ''
   },
   lastName: {
     type: String,
+    default: ''
   },
   phone: {
     type: String,
-    required: true,
-    unique: true
+    default: ''
   },
   isAdmin: {
     type: Boolean,
@@ -30,6 +31,15 @@ const userSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
+    default: ''
+  },
+  provider: {
+    type: String,
+    default: 'local'   // 'local' | 'google'
+  },
+  googleId: {
+    type: String,
+    default: null
   },
   createdAt: {
     type: Date,
