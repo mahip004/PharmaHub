@@ -16,7 +16,7 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "paid", "confirmed", "shipped", "delivered", "cancelled"],
     default: "pending",
   },
-  paymentMethod: { type: String, enum: ["card", "upi", "cod"], default: "card" },
+  paymentMethod: { type: String, enum: ["card", "upi", "cod", "online"], default: "card" },
   paymentId: { type: String }, // Stripe session or mock id
   shippingAddress: {
     street: String,

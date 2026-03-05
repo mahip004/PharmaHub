@@ -7,7 +7,7 @@ const { generateToken } = require("./config/jwt.js");
 const { jwtMiddleware } = require("./middleware/jwtMiddleware.js");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const paymentRoutes = require("./routes/stripe.js");
+const paymentRoutes = require("./routes/razorpayRoutes.js");
 const PORT = process.env.PORT || 5000;
 // Import database connection
 const connectDB = require("./config/db.js");
@@ -39,7 +39,7 @@ app.use("/api/addresses", addressRoutes);
 app.use("/api", appointmentRoutes);
 
 app.use("/auth", authRoutes);
-app.use("/api/stripe", paymentRoutes);
+app.use("/api/payment", paymentRoutes);
 app.use("/users", userRoutes);
 
 // start server

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/sidebar";
 import { useCart } from "../context/CartContext";
+import PaymentModal from "../components/PaymentModal";
 import "./Checkout.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -18,9 +19,11 @@ const Checkout = () => {
     pincode: "",
     phone: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("online");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState(null);
 
   const token = () => localStorage.getItem("token");
 
@@ -77,15 +80,17 @@ const Checkout = () => {
     setLoading(false);
   };
 
-  const handlePlaceOrder = async () => {
+  // Step 1: Create the order in our backend
+  const createOrder = async () => {
     const addr = addresses.find((a) => a._id === selectedAddress);
     if (!addr && !newAddress.street) {
       setError("Please select or add a delivery address.");
-      return;
+      return null;
     }
     const shippingAddress = addr || newAddress;
     setLoading(true);
     setError("");
+
     try {
       const orderRes = await fetch(`${API_URL}/api/orders`, {
         method: "POST",
@@ -108,45 +113,36 @@ const Checkout = () => {
       if (!orderRes.ok) {
         setError(orderData.message || "Failed to create order");
         setLoading(false);
-        return;
+        return null;
       }
-
-      if (paymentMethod === "card") {
-        const stripeItems = (orderData.items || []).map((i) => ({
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-        }));
-        const stripeRes = await fetch(`${API_URL}/api/stripe/create-checkout-session`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token()}`,
-          },
-          body: JSON.stringify({
-            items: stripeItems.length ? stripeItems : items.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity })),
-            orderId: orderData.orderId,
-          }),
-        });
-        const stripeData = await stripeRes.json();
-        if (stripeData.url) {
-          window.location.href = stripeData.url;
-          return;
-        }
-        if (stripeData.id) {
-          try {
-            const stripe = window.Stripe && window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-            if (stripe) await stripe.redirectToCheckout({ sessionId: stripeData.id });
-            return;
-          } catch (_) {}
-        }
-      }
-
-      navigate(`/order-success?orderId=${orderData.orderId}`);
-    } catch (e) {
+      return orderData.orderId;
+    } catch (_) {
       setError("Something went wrong.");
+      setLoading(false);
+      return null;
     }
+  };
+
+  const handlePlaceOrder = async () => {
+    const orderId = await createOrder();
+    if (!orderId) return;
+
+    if (paymentMethod === "cod") {
+      // COD: straight to success
+      navigate(`/order-success?orderId=${orderId}`);
+      return;
+    }
+
+    // Online: show demo payment modal
+    setPendingOrderId(orderId);
     setLoading(false);
+    setShowPaymentModal(true);
+  };
+
+  // Called when PaymentModal reports success
+  const handlePaymentSuccess = (txnId) => {
+    setShowPaymentModal(false);
+    navigate(`/order-success?orderId=${pendingOrderId}&txn=${txnId}`);
   };
 
   if (!isLoggedIn || items.length === 0) {
@@ -155,98 +151,107 @@ const Checkout = () => {
   }
 
   return (
-    <div className="shop-layout">
-      <Sidebar />
-      <div className="shop-container" style={{ maxWidth: "700px" }}>
-        <h2>Checkout</h2>
-        {error && <p className="checkout-error">{error}</p>}
+    <>
+      {showPaymentModal && (
+        <PaymentModal
+          amount={totalAmount}
+          onSuccess={handlePaymentSuccess}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
 
-        <section className="checkout-section">
-          <h3>Delivery Address</h3>
-          {addresses.map((a) => (
-            <label key={a._id} className="address-option">
+      <div className="shop-layout">
+        <Sidebar />
+        <div className="shop-container" style={{ maxWidth: "700px" }}>
+          <h2>Checkout</h2>
+          {error && <p className="checkout-error">{error}</p>}
+
+          <section className="checkout-section">
+            <h3>Delivery Address</h3>
+            {addresses.map((a) => (
+              <label key={a._id} className="address-option">
+                <input
+                  type="radio"
+                  name="address"
+                  checked={selectedAddress === a._id}
+                  onChange={() => setSelectedAddress(a._id)}
+                />
+                <span>
+                  {a.street}, {a.city}, {a.state} - {a.pincode}, {a.phone}
+                </span>
+              </label>
+            ))}
+            <form onSubmit={handleAddAddress} className="new-address-form">
+              <input
+                placeholder="Street"
+                value={newAddress.street}
+                onChange={(e) => setNewAddress((p) => ({ ...p, street: e.target.value }))}
+              />
+              <input
+                placeholder="City"
+                value={newAddress.city}
+                onChange={(e) => setNewAddress((p) => ({ ...p, city: e.target.value }))}
+              />
+              <input
+                placeholder="State"
+                value={newAddress.state}
+                onChange={(e) => setNewAddress((p) => ({ ...p, state: e.target.value }))}
+              />
+              <input
+                placeholder="Pincode"
+                value={newAddress.pincode}
+                onChange={(e) => setNewAddress((p) => ({ ...p, pincode: e.target.value }))}
+              />
+              <input
+                placeholder="Phone"
+                value={newAddress.phone}
+                onChange={(e) => setNewAddress((p) => ({ ...p, phone: e.target.value }))}
+              />
+              <button type="submit" disabled={loading}>
+                Add Address
+              </button>
+            </form>
+          </section>
+
+          <section className="checkout-section">
+            <h3>Payment Method</h3>
+            <label className="address-option">
               <input
                 type="radio"
-                name="address"
-                checked={selectedAddress === a._id}
-                onChange={() => setSelectedAddress(a._id)}
+                name="payment"
+                checked={paymentMethod === "online"}
+                onChange={() => setPaymentMethod("online")}
               />
-              <span>{a.street}, {a.city}, {a.state} - {a.pincode}, {a.phone}</span>
+              <span>💳 Online Payment — Card / UPI</span>
             </label>
-          ))}
-          <form onSubmit={handleAddAddress} className="new-address-form">
-            <input
-              placeholder="Street"
-              value={newAddress.street}
-              onChange={(e) => setNewAddress((p) => ({ ...p, street: e.target.value }))}
-            />
-            <input
-              placeholder="City"
-              value={newAddress.city}
-              onChange={(e) => setNewAddress((p) => ({ ...p, city: e.target.value }))}
-            />
-            <input
-              placeholder="State"
-              value={newAddress.state}
-              onChange={(e) => setNewAddress((p) => ({ ...p, state: e.target.value }))}
-            />
-            <input
-              placeholder="Pincode"
-              value={newAddress.pincode}
-              onChange={(e) => setNewAddress((p) => ({ ...p, pincode: e.target.value }))}
-            />
-            <input
-              placeholder="Phone"
-              value={newAddress.phone}
-              onChange={(e) => setNewAddress((p) => ({ ...p, phone: e.target.value }))}
-            />
-            <button type="submit" disabled={loading}>Add Address</button>
-          </form>
-        </section>
+            <label className="address-option">
+              <input
+                type="radio"
+                name="payment"
+                checked={paymentMethod === "cod"}
+                onChange={() => setPaymentMethod("cod")}
+              />
+              <span>🚚 Cash on Delivery</span>
+            </label>
+          </section>
 
-        <section className="checkout-section">
-          <h3>Payment</h3>
-          <label className="address-option">
-            <input
-              type="radio"
-              name="payment"
-              checked={paymentMethod === "card"}
-              onChange={() => setPaymentMethod("card")}
-            />
-            <span>Card (Stripe)</span>
-          </label>
-          <label className="address-option">
-            <input
-              type="radio"
-              name="payment"
-              checked={paymentMethod === "upi"}
-              onChange={() => setPaymentMethod("upi")}
-            />
-            <span>UPI (mock)</span>
-          </label>
-          <label className="address-option">
-            <input
-              type="radio"
-              name="payment"
-              checked={paymentMethod === "cod"}
-              onChange={() => setPaymentMethod("cod")}
-            />
-            <span>Cash on Delivery</span>
-          </label>
-        </section>
-
-        <div className="cart-footer">
-          <strong>Total: ₹{totalAmount}</strong>
-          <button
-            className="cart-btn checkout-btn"
-            onClick={handlePlaceOrder}
-            disabled={loading}
-          >
-            {paymentMethod === "card" ? "Pay with Card" : "Place Order"}
-          </button>
+          <div className="cart-footer">
+            <strong>Total: ₹{totalAmount}</strong>
+            <button
+              className="cart-btn checkout-btn"
+              onClick={handlePlaceOrder}
+              disabled={loading}
+            >
+              {loading
+                ? "Processing..."
+                : paymentMethod === "online"
+                  ? `Pay ₹${totalAmount}`
+                  : "Place Order (COD)"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
