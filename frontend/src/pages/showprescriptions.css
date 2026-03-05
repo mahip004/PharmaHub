@@ -1,0 +1,60 @@
+.show-prescriptions-container {
+  width: 90%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.prescriptions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px;
+}
+
+.prescription-card {
+  display: flex;
+  align-items: flex-start;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  border-radius: 12px; /* Rounded corners */
+  padding: 15px;
+  gap: 20px;
+  width: 90%;
+  max-width: 1400px;
+  margin: auto;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.prescription-card:hover {
+  transform: translateY(-3px); /* Slight lift on hover */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Deeper shadow */
+}
+
+.prescription-image {
+  width: 50%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 12px; /* Rounded corners */
+}
+
+.prescription-text-container {
+  width: 50%;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+  border-left: 2px solid #ddd;
+  padding-left: 10px;
+  border-radius: 12px; /* Rounded corners */
+}
+
+.prescription-text {
+  font-size: 16px;
+  color: #333;
+}
+
+.prescription-date {
+  font-size: 14px;
+  color: #777;
+  text-align: right;
+}

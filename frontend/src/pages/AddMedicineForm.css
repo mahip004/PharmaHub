@@ -1,0 +1,120 @@
+.medicine-form-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #eaf3ff; /* Light bluish background */
+    border-radius: 16px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    font-family: "Segoe UI", sans-serif;
+    flex: 1;
+  }
+  
+  .medicine-form-container h2 {
+    text-align: center;
+    font-size: 26px;
+    color: #3d3d3d;
+    margin-bottom: 25px;
+    font-weight: 600;
+  }
+  
+  .medicine-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .medicine-form label {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #444;
+    font-weight: 500;
+  }
+  
+  .medicine-form input,
+  .medicine-form select {
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid #c3d2e3;
+    border-radius: 8px;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+  }
+  
+  .medicine-form input:focus,
+  .medicine-form select:focus {
+    border-color: #6200ea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(98, 0, 234, 0.1);
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    gap: 8px;
+    color: #444;
+  }
+  
+  .medicine-form input[type="file"] {
+    border: none;
+    background: transparent;
+  }
+  
+  .submit-btn {
+    margin-top: 25px;
+    padding: 12px;
+    background-color: #6200ea;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+.submit-btn:hover {
+  background-color: #4b00c4;
+}
+
+.inventory-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.inventory-item button {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+}
+
+.inventory-item button.danger {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fff;
+}
+
+.inventory-item button.danger:hover {
+  background: #fef2f2;
+}
+
+.medicine-form-container h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-size: 18px;
+}

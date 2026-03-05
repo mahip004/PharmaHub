@@ -1,0 +1,166 @@
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --text-dark: #374151;
+  --text-light: #6b7280;
+  --background: #f8fafc;
+  --white: #ffffff;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.upload-title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.upload-card {
+  display: flex;
+  width: 500px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.upload-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Left side - Upload Box */
+.upload-box {
+  width: 50%;
+  height: 200px;
+  border: 2px dashed var(--primary); /* RESTORED DOTTED LINE */
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  padding: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.upload-box:hover {
+  background-color: #f3f4f6;
+}
+
+.upload-icon {
+  font-size: 40px;
+  color: var(--primary);
+}
+
+.upload-text {
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.upload-format {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.file-name {
+  font-size: 13px;
+  color: var(--text-dark);
+  margin-top: 10px;
+}
+
+/* Right side - Text Input */
+.text-input-container {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  padding: 20px;
+}
+
+.text-input {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #d1d5db; /* Small border for consistency */
+  border-radius: 5px;
+  font-size: 14px;
+  padding: 10px;
+  resize: none;
+  outline: none;
+  background: #f3f4f6;
+}
+
+/* Analyze Button */
+.analyze-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-top: 15px;
+}
+
+.analyze-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.03);
+}
+
+.analyze-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.upload-error {
+  color: #dc2626;
+  margin-top: 8px;
+}
+
+.upload-result {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  max-width: 560px;
+  width: 100%;
+}
+
+.upload-result h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.medicine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.medicine-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.medicine-list .matched {
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.medicine-list .no-match {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.add-all-btn {
+  margin-top: 0;
+}
